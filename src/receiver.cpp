@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 #include <iostream>
 #include "sender.h"
+#include <fstream>
 
 using namespace std;
 
@@ -97,6 +98,7 @@ int main(int argc, char* argv[]){
 	//~ cout << "Bind success" << endl;
 	socklen_t len = sizeof(socket_send);
 	int recv, recv_len;
+	ofstream ofs("testres.txt", ofstream::out);
 	while (true){
 		if (recvfrom(_socket, &buffer, BUFFER_SIZE, 0, (struct sockaddr *) &socket_send, &len) < 0){
 			err("Socket::Receive Failed");
@@ -112,6 +114,8 @@ int main(int argc, char* argv[]){
 			printf("Receive %d from port %d\n", seqnum, port);
 		}
 		
+		ofs << recvBuff;
+		
 		char sendBuff[5];
 		memset(sendBuff, seqnum, 1);
 		int next = seqnum + 1;
@@ -121,6 +125,13 @@ int main(int argc, char* argv[]){
 		//Send Reply Status
 		if (sendto(_socket, sendBuff, 5, 0,(struct sockaddr *) &socket_send, sizeof(socket_send)) < 0){
 			err("Socket::Server Reply Failed");
+		}
+		else {
+			printf("Send Ack SeqNum %d to Client\n", seqnum);
+		}
+		if (seqnum == 5){
+			ofs.close();
+			break;
 		}
 	}
 	//~ FILE *file = fopen(filename, "r");

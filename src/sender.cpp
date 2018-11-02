@@ -93,10 +93,11 @@ void initialize(int argc, char* argv[]){
 	}
 }
 
-int sumArrElmt(int e[]){
+int sumArrElmt(int *e){
 	int sum = 0;
-	for(int i = 0; i < sizeof(e); i++){
+	for(int i = 0; i < windowsize; i++){
 		sum += e[i];
+		cout << e[i] << endl;
 	}
 	return sum;
 }
@@ -117,30 +118,39 @@ int main(int argc, char* argv[]){
 	if (file == NULL){
 		err("File::File Not Found");
 	}
-	
+	int seqnum = 0;
 	while (true) {
+		int length;
 		counter = 0;
 		
 		ifstream ifs(filename, ifstream::binary);
 		ifs.read(buffer, buffersize * 1024);
-		
-		int seqnum = 0;
 		int ack[windowsize];
 		
 		for (int i = 0; i < windowsize; i++)
 			ack[i] = 0;
 		
+		//~ cout << strlen(buffer)*1024 << endl;
+		//~ break;
+		
 		int lastAckRecv = 0;
 		int lastRecvFrame = 0;
 		int datalen;
 		while (sumArrElmt(ack) < windowsize){
+			printf("got in\n");
 			char *buff = new char[10 + BUFFER_SIZE];
 			datalen = BUFFER_SIZE;
+			printf("pass\n");
 			memset(buff , 0x1, 1);
+			printf("pass1\n");
 			memcpy(buff + 1, &seqnum, 4);
+			printf("pass2\n");
 			memcpy(buff + 5, &datalen, 4);
+			printf("pass3\n");
 			memcpy(buff + 9, buffer + (seqnum * 1024), BUFFER_SIZE);
+			printf("pass4\n");
 			memset(buff + 9 + datalen, 0x0, 1);
+			printf("pass5\n");
 			
 			if (sendto(_socket, buff, sizeof(buffer), 0, (struct sockaddr *) &socket_recv, sizeof(socket_recv)) < 0) {
 				err("Socket::Failed to Send Packet");
@@ -158,8 +168,8 @@ int main(int argc, char* argv[]){
 				memcpy(&acknum, recvBuff + 1, 4);
 				char checksumRecv = recvBuff[5];
 				//acknum = *((int*)(recvBuff + 1));
-				ack[acknum] = 1;
-				printf("Acknowledge seqnum %d, asking for seqnum %d\n", ackrecv, acknum);
+				ack[ackrecv%windowsize] = 1;
+				printf("Acknowledge SeqNum %d, asking for SeqNum %d\n", ackrecv, acknum);
 			}
 			
 			
