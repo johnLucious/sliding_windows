@@ -85,7 +85,7 @@ int main(int argc, char* argv[]){
 	int seqnum, datalen;
 	initialize(argc, argv);
 	cout << "Initialize success" << endl;
-	char buffer[BUFFER_SIZE], recvBuff[BUFFER_SIZE + 10];
+	char buffer[BUFFER_SIZE], recvBuff[BUFFER_SIZE];
 	char checksum, soh;
 	
 	char *text = "Hello From Server";
@@ -98,7 +98,6 @@ int main(int argc, char* argv[]){
 	socklen_t len = sizeof(socket_send);
 	int recv, recv_len;
 	while (true){
-		printf("Waiting . . .\n");
 		if (recvfrom(_socket, &buffer, BUFFER_SIZE, 0, (struct sockaddr *) &socket_send, &len) < 0){
 			err("Socket::Receive Failed");
 		}
@@ -110,12 +109,17 @@ int main(int argc, char* argv[]){
 			memcpy(&datalen, buffer + 5, 4);
 			memcpy(&recvBuff, buffer + 9, datalen);
 			checksum = buffer[sizeof(buffer)];
+			printf("Receive %d from port %d\n", seqnum, port);
 		}
 		
-		//~ char
+		char sendBuff[5];
+		memset(sendBuff, seqnum, 1);
+		int next = seqnum + 1;
+		memcpy(sendBuff + 1, &next, 4);
+		memset(sendBuff + 5, 0x0, 1);
 		
 		//Send Reply Status
-		if (sendto(_socket, "Message Receive by Server", BUFFER_SIZE, 0,(struct sockaddr *) &socket_send, sizeof(socket_send)) < 0){
+		if (sendto(_socket, sendBuff, 5, 0,(struct sockaddr *) &socket_send, sizeof(socket_send)) < 0){
 			err("Socket::Server Reply Failed");
 		}
 	}

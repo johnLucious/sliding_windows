@@ -153,13 +153,13 @@ int main(int argc, char* argv[]){
 				err("Socket::Failed to Retrieve from Server");
 			}
 			else {
-				//~ int acknum;
-				//~ char ackrecv = recvBuff[0];
-				//~ memcpy(&acknum, recvBuff + 1, 4);
-				//~ char checksumRecv = recvBuff[5];
-				//~ //acknum = *((int*)(recvBuff + 1));
-				//~ ack[acknum] = 1;
-				printf("%s\n", recvBuff);
+				int acknum;
+				char ackrecv = recvBuff[0];
+				memcpy(&acknum, recvBuff + 1, 4);
+				char checksumRecv = recvBuff[5];
+				//acknum = *((int*)(recvBuff + 1));
+				ack[acknum] = 1;
+				printf("Acknowledge seqnum %d, asking for seqnum %d\n", ackrecv, acknum);
 			}
 			
 			
