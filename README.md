@@ -24,7 +24,7 @@ Pada sender terdapat tiga komponen utama yaitu membaca file dari file eksternal,
 File dibaca dengan menggunakan `ifstream::binary` untuk melakukan penyimpanan data secara biner. Pengiriman kemudian dilakukan berdasarkan format frame yaitu: `[soh][seq_num][data_length][data][checksum]`
 
 Pada receiver terdapat tiga komponen utama yaitu menerima frame data, mengirim ACK, dan mengurus pemindahan data dari frame buffer ke file eksternal.
-Frame yang diterima akan dilakukan konstruksi data dengan menggunakan `ofstream::binary`. Pada saat frame sudah diterima, akan dilakukan pengiriman ack yang menandakan bahwa frame dengan seqnum telah di terima.
+Frame yang diterima akan dilakukan konstruksi data dengan menggunakan `ofstream::binary`. Pada saat frame sudah diterima, akan dilakukan pengiriman ack yang menandakan bahwa frame dengan seqnum telah di terima. Pengiriman ACK dilakukan berdasarkan format pengiriman yaitu: `[ack][next_seq_num][checksum]`
 
 ## Pembagian Tugas
 Jansen / 13516011 : Receiver, Sender
