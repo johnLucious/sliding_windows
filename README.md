@@ -18,3 +18,10 @@ Sender bertugas untuk membaca file yang mau dikirim, kemudian mengirimkan datany
 Pada sender terdapat tiga komponen utama yaitu membaca file dari file eksternal, mengirim frame data, mengirim kembali frame data yang sebelumnya hilang.
 
 Pada receiver terdapat tiga komponen utama yaitu menerima frame data, mengirim ACK, dan mengurus pemindahan data dari frame buffer ke file eksternal.
+
+## Pembagian Tugas
+Jansen / 13516011 : Receiver, Sender
+
+Juan Felix Parsaoran / 13516143 : Makefile
+
+Aristoteles Swarna Wirahadi / 13516146 : readme.md
