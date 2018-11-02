@@ -82,9 +82,11 @@ void initialize(int argc, char* argv[]){
 }
 
 int main(int argc, char* argv[]){
+	int seqnum, datalen;
 	initialize(argc, argv);
 	cout << "Initialize success" << endl;
-	char buffer[BUFFER_SIZE];
+	char buffer[BUFFER_SIZE], recvBuff[BUFFER_SIZE + 10];
+	char checksum, soh;
 	
 	char *text = "Hello From Server";
 	if (bind(_socket, (const struct sockaddr *) &socket_recv, _socket_len) < 0){
@@ -101,8 +103,20 @@ int main(int argc, char* argv[]){
 			err("Socket::Receive Failed");
 		}
 		else {
-			buffer[strlen(buffer)] = '\0';
-			printf("%s\n", buffer);
+			//~ buffer[strlen(buffer)] = '\0';
+			//~ printf("Client: %s\n", buffer);
+			soh = buffer[0];
+			memcpy(&seqnum, buffer + 1, 4);
+			memcpy(&datalen, buffer + 5, 4);
+			memcpy(&recvBuff, buffer + 9, datalen);
+			checksum = buffer[sizeof(buffer)];
+		}
+		
+		//~ char
+		
+		//Send Reply Status
+		if (sendto(_socket, "Message Receive by Server", BUFFER_SIZE, 0,(struct sockaddr *) &socket_send, sizeof(socket_send)) < 0){
+			err("Socket::Server Reply Failed");
 		}
 	}
 	//~ FILE *file = fopen(filename, "r");

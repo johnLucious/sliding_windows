@@ -15,7 +15,9 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <iostream>
+#include <fstream>
 #include "sender.h"
+#include "frame.h"
 
 using namespace std;
 
@@ -36,6 +38,7 @@ int destination_port;
 // Socket
 struct sockaddr_in socket_send, socket_recv;
 int _socket, _socket_len = sizeof(socket_send);
+socklen_t len;
 
 // Window
 SenderWindow window;
@@ -60,7 +63,7 @@ void initialize(int argc, char* argv[]){
 	else {
 		filename = argv[1];
 		windowsize = atoi(argv[2]);
-		buffersize = BUFFER_SIZE;
+		buffersize = atoi(argv[3]);
 		hostname = argv[4];
 		destination_port= atoi(argv[5]);
 		
@@ -90,40 +93,119 @@ void initialize(int argc, char* argv[]){
 	}
 }
 
+int sumArrElmt(int e[]){
+	int sum = 0;
+	for(int i = 0; i < sizeof(e); i++){
+		sum += e[i];
+	}
+	return sum;
+}
+
 int main(int argc, char* argv[]){
-	char text[BUFFER_SIZE];
+	char text[BUFFER_SIZE], buffer[BUFFER_SIZE], recvBuff[10 + BUFFER_SIZE];
+	int counter;
+	char c;
+	char *tempFrame;
 	initialize(argc, argv);
 	if (bind(_socket, (struct sockaddr *) &socket_send, _socket_len) < 0){
 		printf("Error, exit");
 		exit(EXIT_FAILURE);
 	}
-	while (true) {
-		printf("Input text to be sent: ");
-		fgets(text, BUFFER_SIZE, stdin);
-		if (sendto(_socket, text, sizeof(text), 0, (struct sockaddr *) &socket_recv, sizeof(socket_recv)) < 0){
-			err("Socket::Failed to Send");
-		}
-		else {
-			printf("Message Sent\n");
-		}
-	}
-	//~ FILE *file = fopen(filename, "r");
-	//~ if (file == NULL){
-		//~ err("File::File Not Found");
-	//~ }
-	//~ Byte c;
-	//~ bool endFile = false;
 	
-	//~ while(true){
-		//~ while(window.count <= window.maxsize / 2 && !endfile){
-			//~ if(lastReceivedChar != xOFF){
-				//~ if(fscanf(file, "%c", &c) == EOF){
-					//~ h = endfile;
-					//~ endfile = true;
-				//~ }
-				//~ putBack(c, &window);
+	FILE *file;
+	file = fopen(filename, "r");
+	if (file == NULL){
+		err("File::File Not Found");
+	}
+	
+	while (true) {
+		counter = 0;
+		
+		ifstream ifs(filename, ifstream::binary);
+		ifs.read(buffer, buffersize * 1024);
+		
+		int seqnum = 0;
+		int ack[windowsize];
+		
+		for (int i = 0; i < windowsize; i++)
+			ack[i] = 0;
+		
+		int lastAckRecv = 0;
+		int lastRecvFrame = 0;
+		int datalen;
+		while (sumArrElmt(ack) < windowsize){
+			char *buff = new char[10 + BUFFER_SIZE];
+			datalen = BUFFER_SIZE;
+			memset(buff , 0x1, 1);
+			memcpy(buff + 1, &seqnum, 4);
+			memcpy(buff + 5, &datalen, 4);
+			memcpy(buff + 9, buffer + (seqnum * 1024), BUFFER_SIZE);
+			memset(buff + 9 + datalen, 0x0, 1);
+			
+			if (sendto(_socket, buff, sizeof(buffer), 0, (struct sockaddr *) &socket_recv, sizeof(socket_recv)) < 0) {
+				err("Socket::Failed to Send Packet");
+			}
+			else {
+				printf("Packet sent SeqNum %d on port %d\n", seqnum, destination_port);
+			}
+			
+			if (recvfrom(_socket, &recvBuff, BUFFER_SIZE, 0, (struct sockaddr *) &socket_recv, &len) < 0) {
+				err("Socket::Failed to Retrieve from Server");
+			}
+			else {
+				//~ int acknum;
+				//~ char ackrecv = recvBuff[0];
+				//~ memcpy(&acknum, recvBuff + 1, 4);
+				//~ char checksumRecv = recvBuff[5];
+				//~ //acknum = *((int*)(recvBuff + 1));
+				//~ ack[acknum] = 1;
+				printf("%s\n", recvBuff);
+			}
+			
+			
+			free(buff);
+			seqnum++;
+		}
+		
+		// Packet framing
+		//~ while ((c = fgetc(file)) != EOF){
+			//~ ungetc(file);
+			//~ int currsize = 0;
+			//~ tempFrame = (char *) malloc(sizeof(char) * 1024);
+			//~ while (currsize < BUFFER_SIZE && (c = fgetc(file)) != EOF){
+				//~ tempFrame[currsize] = (char) c;
+				//~ currsize++;
 			//~ }
+			//~ if (c == EOF) {
+				//~ tempFrame[currsize-1] = '\0';
+				//~ currsize--;
+			//~ }
+			//~ //Frame frame = createFrame(counter, currsize, tempFrame);
+			//~ char *buffer = new char[10 + currsize];
+			
+			
+			
+			
+			//~ if (sendto(_socket, 
+			
+			//~ counter++;
 		//~ }
 		
-	//~ }
+		// Iterate on window
+		
+			
+		//~ printf("Input text to be sent: ");
+		//~ fgets(text, BUFFER_SIZE, stdin);
+		//~ if (sendto(_socket, text, sizeof(text), 0, (struct sockaddr *) &socket_recv, sizeof(socket_recv)) < 0){
+			//~ err("Socket::Failed to Send");
+		//~ }
+		
+		//~ if (recvfrom(_socket, &buffer, BUFFER_SIZE, 0, (struct sockaddr *) &socket_recv, &len) < 0){
+			//~ err("Socket::Client Receive Failed");
+		//~ }
+		//~ else
+			//~ printf("Server: %s\n", buffer);]
+		
+	}
+	
 }
